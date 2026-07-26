@@ -7,20 +7,17 @@ app.get("/", (req, res) => {
     res.send("PR Guardian is alive");
 });
 app.post("/webhook", (req, res) => {
+    const event = req.headers["x-github-event"];
 
-    console.log("Event:", req.headers['x-github-event']);
+    console.log("Event:", event);
 
-    console.log("Action:", req.body.action);
+    if (event === "pull_request") {
+        console.log(
+            `PR #${req.body.pull_request.number} ${req.body.action} in repo ${req.body.repository.name}`
+        );
+    }
 
-    console.log("PR Number:", req.body.pull_request.number);
-
-    console.log("Repository:", req.body.repository.name);
-    console.log(
-    "User:",
-    req.body.pull_request?.user?.login
-); 
-
-    res.send("Webhook processed");
+    res.status(200).send("Webhook processed");
 });
 
 app.listen(3000, () => {
