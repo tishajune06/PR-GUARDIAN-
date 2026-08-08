@@ -22,7 +22,7 @@ app.post("/webhook", (req, res) => {
 
     res.send("Webhook processed");
 });
-
+console.log("File filtering test");
 app.listen(3000, () => {
     console.log("Server running on port 3000");
 });
