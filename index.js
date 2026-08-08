@@ -12,7 +12,7 @@ app.post("/webhook", (req, res) => {
 
     console.log("Action:", req.body.action);
 
-    console.log("PR Number:", req.body.pull_request.number);
+    console.log("PR Numr:", req.body.pull_request.number);
 
     console.log("Repository:", req.body.repository.name);
     console.log(
