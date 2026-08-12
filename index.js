@@ -10,7 +10,7 @@ app.post("/webhook", (req, res) => {
 
     console.log("nt:", req.headers['x-github-event']);
 
-    console.log("Action:", req.body.action);
+    console.log("An:", req.body.action);
 
     console.log("PR Numr:", req.body.pull_request.number);
 
