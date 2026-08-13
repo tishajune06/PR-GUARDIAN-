@@ -14,7 +14,7 @@ if (!process.env.GEMINI_API_KEY) {
 if (!process.env.GITHUB_WEBHOOK_SECRET) {
   console.log("⚠️ GITHUB_WEBHOOK_SECRET missing in .env");
 }
-console.log("PR Guardian test");
+console.log("PR Gudian test");
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN
 });
