@@ -35,8 +35,23 @@ async function testGitHub() {
 }
 
 testGitHub();
+function splitDiffIntoChunks(diff, maxSize) {
+  const chunks = [];
 
+  for (let i = 0; i < diff.length; i += maxSize) {
+    chunks.push(diff.slice(i, i + maxSize));
+  }
+
+  return chunks;
+}
 async function reviewWithGemini(diff) {
+    const MAX_DIFF_SIZE = 12000;
+    const chunks = splitDiffIntoChunks(diff, MAX_DIFF_SIZE);
+
+console.log("Total diff chunks:", chunks.length);
+    if (diff.length > MAX_DIFF_SIZE) {
+  console.log("⚠️ PR diff is too large. It needs to be split into smaller chunks.");
+}
   const maxRetries = 3;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -87,7 +102,7 @@ If there are no real issues, return:
 
 Here is the PR diff:
 
-${diff}
+${chunks[0]} 
 `;
 
       console.log(`Sending review request to Gemini... Attempt ${attempt}/${maxRetries}`);
