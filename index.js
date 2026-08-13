@@ -18,7 +18,7 @@ console.log("PR Guardian test");
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN
 });
-console.log("Chunking test");
+console.log(" test");
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY
 });
