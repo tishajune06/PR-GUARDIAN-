@@ -298,8 +298,8 @@ async function getPullRequestFiles(owner, repo, pullNumber) {
     
 
     const filteredFiles = data.filter(file =>
-      allowedExtensions.some(extension => file.filename.endsWith(extension))
-    );
+  shouldReviewFile(file.filename)
+);
 
     const reviewFiles = filteredFiles.map(file => ({
       filename: file.filename,
