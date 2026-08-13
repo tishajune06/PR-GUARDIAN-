@@ -45,18 +45,26 @@ function splitDiffIntoChunks(diff, maxSize) {
   return chunks;
 }
 async function reviewWithGemini(diff) {
-    const MAX_DIFF_SIZE = 12000;
-    const chunks = splitDiffIntoChunks(diff, MAX_DIFF_SIZE);
+  const MAX_DIFF_SIZE = 12000;
 
-console.log("Total diff chunks:", chunks.length);
-    if (diff.length > MAX_DIFF_SIZE) {
-  console.log("⚠️ PR diff is too large. It needs to be split into smaller chunks.");
-}
-  const maxRetries = 3;
+  const chunks = splitDiffIntoChunks(diff, MAX_DIFF_SIZE);
 
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const prompt = `
+  console.log("Total diff chunks:", chunks.length);
+
+  let allIssues = [];
+
+  for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+    console.log(
+      `Reviewing chunk ${chunkIndex + 1}/${chunks.length}...`
+    );
+
+    const chunk = chunks[chunkIndex];
+
+    const maxRetries = 3;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const prompt = `
 You are an expert software engineer performing a code review.
 
 Review the following GitHub pull request diff.
@@ -64,6 +72,7 @@ Review the following GitHub pull request diff.
 Your job is to identify only REAL and meaningful issues.
 
 Focus on:
+
 - Bugs
 - Incorrect logic
 - Security vulnerabilities
@@ -71,6 +80,7 @@ Focus on:
 - Reliability problems
 
 Do NOT report:
+
 - Personal coding style preferences
 - Formatting issues
 - Naming preferences
@@ -100,45 +110,71 @@ If there are no real issues, return:
   "suggestions": []
 }
 
-Here is the PR diff:
+Here is the PR diff chunk:
 
-${chunks[0]} 
+${chunk}
 `;
 
-      console.log(`Sending review request to Gemini... Attempt ${attempt}/${maxRetries}`);
+        console.log(
+          `Sending chunk ${chunkIndex + 1} to Gemini... Attempt ${attempt}/${maxRetries}`
+        );
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.6-flash",
-        contents: prompt
-      });
+        const response = await ai.models.generateContent({
+          model: "gemini-3.6-flash",
+          contents: prompt
+        });
 
-      const reviewText = response.text;
+        const reviewText = response.text;
 
-      const cleanedText = reviewText
-        .replace(/```json/g, "")
-        .replace(/```/g, "")
-        .trim();
+        const cleanedText = reviewText
+          .replace(/```json/g, "")
+          .replace(/```/g, "")
+          .trim();
 
-      const review = JSON.parse(cleanedText);
+        const review = JSON.parse(cleanedText);
 
-      console.log("Gemini Review Successful ✅");
+        if (review.issues) {
+          allIssues.push(...review.issues);
+        }
 
-      return review;
+        console.log(
+          `Chunk ${chunkIndex + 1} review successful ✅`
+        );
 
-    } catch (error) {
-      console.log(`Gemini attempt ${attempt} failed ❌`);
-      console.log(error.message);
+        break;
 
-      if (attempt < maxRetries) {
-        const delay = attempt * 2000;
-        console.log(`Retrying in ${delay / 1000} seconds...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      } else {
-        console.log("Gemini failed after all retries ❌");
-        return null;
+      } catch (error) {
+        console.log(
+          `Chunk ${chunkIndex + 1}, attempt ${attempt} failed ❌`
+        );
+
+        console.log(error.message);
+
+        if (attempt < maxRetries) {
+          const delay = attempt * 2000;
+
+          console.log(
+            `Retrying in ${delay / 1000} seconds...`
+          );
+
+          await new Promise(resolve =>
+            setTimeout(resolve, delay)
+          );
+        } else {
+          console.log(
+            `Chunk ${chunkIndex + 1} failed after all retries ❌`
+          );
+        }
       }
     }
   }
+
+  console.log("All chunks reviewed ✅");
+
+  return {
+    issues: allIssues,
+    suggestions: []
+  };
 }
 
 function formatReviewAsMarkdown(review) {
