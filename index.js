@@ -44,6 +44,9 @@ function splitDiffIntoChunks(diff, maxSize) {
 
   return chunks;
 }
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 async function reviewWithGemini(diff) {
   const MAX_DIFF_SIZE = 12000;
 
@@ -59,6 +62,10 @@ async function reviewWithGemini(diff) {
     );
 
     const chunk = chunks[chunkIndex];
+    if (chunkIndex > 0) {
+  console.log("Waiting before next Gemini request...");
+  await sleep(2000);
+}
 
     const maxRetries = 3;
 
@@ -232,7 +239,51 @@ ${formatted}
     console.log("Message:", error.message);
   }
 }
+function shouldReviewFile(filename) {
+  const ignoredPaths = [
+    "node_modules/",
+    "dist/",
+    "build/",
+    "coverage/",
+    ".next/"
+  ];
 
+  const ignoredExtensions = [
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".webp",
+    ".svg",
+    ".ico",
+    ".lock"
+  ];
+
+  const allowedExtensions = [
+    ".js",
+    ".jsx",
+    ".ts",
+    ".tsx",
+    ".py",
+    ".java",
+    ".cpp",
+    ".c",
+    ".cs",
+    ".go"
+  ];
+
+  if (ignoredPaths.some(path => filename.includes(path))) {
+    return false;
+  }
+
+  if (ignoredExtensions.some(ext => filename.endsWith(ext))) {
+    return false;
+  }
+
+  return allowedExtensions.some(ext =>
+    filename.endsWith(ext)
+  );
+}
 async function getPullRequestFiles(owner, repo, pullNumber) {
   try {
     const { data } = await octokit.request(
@@ -348,8 +399,16 @@ app.post("/test", (req, res) => {
 app.get("/", (req, res) => {
   res.send("PR Guardian is alive");
 });
-
+const processedDeliveries = new Set();
 app.post("/webhook", verifyGitHubSignature, async (req, res) => {
+    const deliveryId = req.headers["x-github-delivery"];
+
+if (processedDeliveries.has(deliveryId)) {
+    console.log("Duplicate webhook ignored:", deliveryId);
+    return res.status(200).send("Already processed");
+}
+
+processedDeliveries.add(deliveryId);
   const event = req.headers["x-github-event"];
 
   console.log("Event:", event);
