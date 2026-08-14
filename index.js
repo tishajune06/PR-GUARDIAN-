@@ -1,8 +1,10 @@
 require("dotenv").config();
 
 const crypto = require("crypto");
+const fs = require("fs");
 const express = require("express");
 const { Octokit } = require("octokit");
+const { createAppAuth } = require("@octokit/auth-app");
 const { GoogleGenAI } = require("@google/genai");
 
 if (!process.env.GITHUB_TOKEN) {
@@ -14,9 +16,28 @@ if (!process.env.GEMINI_API_KEY) {
 if (!process.env.GITHUB_WEBHOOK_SECRET) {
   console.log("⚠️ GITHUB_WEBHOOK_SECRET missing in .env");
 }
-console.log("PR Gudian test");
+console.log("PR Guardian test");
+
+const privateKey = fs.readFileSync(
+  "/etc/secrets/github-app-private-key.pem",
+  "utf8"
+);
+
 const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN
+  authStrategy: createAppAuth,
+  auth: {
+    appId: process.env.GITHUB_APP_ID,
+    privateKey: privateKey,
+    installationId: process.env.GITHUB_INSTALLATION_ID
+  }
+});
+const octokit = new Octokit({
+  authStrategy: createAppAuth,
+  auth: {
+    appId: process.env.GITHUB_APP_ID,
+    privateKey: privateKey,
+    installationId: process.env.GITHUB_INSTALLATION_ID
+  }
 });
 console.log(" test");
 const ai = new GoogleGenAI({
