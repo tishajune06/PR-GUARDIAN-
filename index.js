@@ -23,6 +23,19 @@ const privateKey = fs.readFileSync(
   "utf8"
 );
 
+console.log("Private key loaded:", privateKey.length > 0);
+console.log("Private key length:", privateKey.length);
+console.log(
+  "Private key format:",
+  privateKey.includes("BEGIN") && privateKey.includes("PRIVATE KEY")
+);
+
+console.log("GitHub App ID loaded:", !!process.env.GITHUB_APP_ID);
+console.log(
+  "Installation ID loaded:",
+  !!process.env.GITHUB_INSTALLATION_ID
+);
+
 const octokit = new Octokit({
   authStrategy: createAppAuth,
   auth: {
