@@ -31,14 +31,6 @@ const octokit = new Octokit({
     installationId: process.env.GITHUB_INSTALLATION_ID
   }
 });
-const octokit = new Octokit({
-  authStrategy: createAppAuth,
-  auth: {
-    appId: process.env.GITHUB_APP_ID,
-    privateKey: privateKey,
-    installationId: process.env.GITHUB_INSTALLATION_ID
-  }
-});
 console.log(" test");
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY
