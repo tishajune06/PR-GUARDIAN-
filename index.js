@@ -51,9 +51,10 @@ const ai = new GoogleGenAI({
 
 async function testGitHub() {
   try {
-    const { data } = await octokit.request("GET /user");
-    console.log("GitHub Connected ✅");
-    console.log("Username:", data.login);
+    const { data } = await octokit.request("GET /installation/repositories");
+
+console.log("GitHub App Connected ✅");
+console.log("Repositories accessible:", data.total_count);
   } catch (error) {
     console.log("GitHub Connection Failed ❌");
     console.log(error.message);
