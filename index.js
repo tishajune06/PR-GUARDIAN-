@@ -20,9 +20,9 @@ app.post("/webhook", (req, res) => {
     req.body.pull_request?.user?.login
 ); 
 
-    res.send("Webhook processed");
+    res.send("processed");
 });
-
+console.log("Testing PR Guardian");
 app.listen(3000, () => {
     console.log("Server running on port 3000");
 });
