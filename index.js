@@ -8,7 +8,7 @@ app.get("/", (req, res) => {
 });
 app.post("/webhook", (req, res) => {
 
-    console.log("Event:", req.headers['x-github-event']);
+    console.log("Et:", req.headers['x-github-event']);
 
     console.log("Action:", req.body.action);
 
